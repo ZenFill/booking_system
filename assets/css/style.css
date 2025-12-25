@@ -1,0 +1,24 @@
+/* assets/css/style.css */
+
+/* Import Font Poppins dari Google */
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap");
+
+/* Terapkan ke seluruh body */
+body {
+  font-family: "Poppins", sans-serif !important;
+}
+
+/* Kustomisasi Scrollbar biar keren (Opsional) */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
