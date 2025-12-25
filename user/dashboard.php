@@ -16,12 +16,24 @@ require_once '../layouts/header.php';
 require_once '../layouts/navbar.php';
 ?>
 
-<div class="mb-8 text-center">
-    <h2 class="text-3xl font-bold text-gray-800">Katalog Ruangan</h2>
-    <p class="text-gray-600 mt-2">Pilih ruangan yang sesuai dengan kebutuhan meeting Anda.</p>
+<div class="mb-8 flex flex-col md:flex-row justify-between items-end gap-4">
+    <div class="text-left">
+        <h2 class="text-3xl font-bold text-gray-800">Katalog Ruangan</h2>
+        <p class="text-gray-600 mt-2">Pilih ruangan yang sesuai kebutuhan.</p>
+    </div>
+
+    <div class="w-full md:w-1/3 relative">
+        <input type="text" id="searchInput" placeholder="Cari nama ruangan..."
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm pl-10">
+        <svg class="w-5 h-5 text-gray-400 absolute left-3 top-2.5" fill="none" stroke="currentColor"
+            viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+        </svg>
+    </div>
 </div>
 
-<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+<div id="roomsContainer" class="grid grid-cols-1 md:grid-cols-3 gap-8">
     <?php while ($row = mysqli_fetch_assoc($result)): ?>
         <div class="bg-white rounded-xl shadow-lg overflow-hidden hover:-translate-y-2 transition-transform duration-300">
             <div class="relative">
@@ -43,6 +55,26 @@ require_once '../layouts/navbar.php';
         </div>
     <?php endwhile; ?>
 </div>
+
+<script>
+    // Ambil elemen HTML
+    const searchInput = document.getElementById('searchInput');
+    const roomsContainer = document.getElementById('roomsContainer');
+
+    // Tambahkan "Event Listener" (Pendeteksi Ketikan)
+    searchInput.addEventListener('keyup', function () {
+        const keyword = this.value;
+
+        // Gunakan Fetch API untuk panggil file PHP di belakang layar
+        fetch(`search_logic.php?keyword=${keyword}`)
+            .then(response => response.text()) // Ubah respon jadi text HTML
+            .then(data => {
+                // Ganti isi container dengan hasil pencarian
+                roomsContainer.innerHTML = data;
+            })
+            .catch(error => console.error('Error:', error));
+    });
+</script>
 
 <?php
 require_once '../layouts/footer.php';

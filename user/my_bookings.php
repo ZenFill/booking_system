@@ -31,9 +31,18 @@ require_once '../layouts/navbar.php';
         <table class="min-w-full leading-normal">
             <thead>
                 <tr>
-                    <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Ruangan</th>
-                    <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Jadwal</th>
-                    <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
+                    <th
+                        class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                        Ruangan</th>
+                    <th
+                        class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                        Jadwal</th>
+                    <th
+                        class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                        Status</th>
+                    <th
+                        class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                        Aksi</th>
                 </tr>
             </thead>
             <tbody>
@@ -41,10 +50,12 @@ require_once '../layouts/navbar.php';
                     <tr class="hover:bg-gray-50">
                         <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
                             <div class="flex items-center">
-                                <img class="w-10 h-10 rounded-full object-cover mr-4" src="../uploads/<?= $row['photo'] ?>" alt="" />
+                                <img class="w-10 h-10 rounded-full object-cover mr-4" src="../uploads/<?= $row['photo'] ?>"
+                                    alt="" />
                                 <div>
                                     <p class="text-gray-900 font-bold"><?= $row['room_name'] ?></p>
-                                    <p class="text-gray-500 text-xs mt-1">Keperluan: <?= substr($row['purpose'], 0, 20) ?>...</p>
+                                    <p class="text-gray-500 text-xs mt-1">Keperluan: <?= substr($row['purpose'], 0, 20) ?>...
+                                    </p>
                                 </div>
                             </div>
                         </td>
@@ -71,9 +82,21 @@ require_once '../layouts/navbar.php';
                                 $icon = '❌';
                             }
                             ?>
-                            <span class="relative inline-block px-3 py-1 font-semibold border <?= $statusClass ?> leading-tight rounded-full">
-                                <span class="relative"><?= $icon ?> <?= ucfirst($row['status']) ?></span>
+                            <span
+                                class="relative inline-block px-3 py-1 font-semibold border <?= $statusClass ?> leading-tight rounded-full">
+                                <span class="relative"><?= $icon ?>         <?= ucfirst($row['status']) ?></span>
                             </span>
+                        </td>
+                        <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                            <?php if ($row['status'] == 'approved'): ?>
+                                <a href="ticket.php?id=<?= $row['id'] ?>" target="_blank"
+                                    class="inline-flex items-center px-3 py-1 bg-blue-600 text-white text-xs font-bold rounded hover:bg-blue-700 transition"
+                                    title="Cetak Bukti">
+                                    🖨️ Cetak
+                                </a>
+                            <?php else: ?>
+                                <span class="text-gray-400 text-xs">-</span>
+                            <?php endif; ?>
                         </td>
                     </tr>
                 <?php endwhile; ?>
@@ -82,7 +105,8 @@ require_once '../layouts/navbar.php';
     <?php else: ?>
         <div class="p-10 text-center">
             <p class="text-gray-500 text-lg mb-4">Belum ada riwayat booking.</p>
-            <a href="dashboard.php" class="bg-indigo-600 text-white px-6 py-2 rounded hover:bg-indigo-700 transition">Mulai Booking</a>
+            <a href="dashboard.php" class="bg-indigo-600 text-white px-6 py-2 rounded hover:bg-indigo-700 transition">Mulai
+                Booking</a>
         </div>
     <?php endif; ?>
 </div>
