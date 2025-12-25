@@ -11,8 +11,8 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
 
 // 2. Logika Pemrosesan Form
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $name = mysqli_real_escape_string($conn, $_POST['room_name']);
-    $desc = mysqli_real_escape_string($conn, $_POST['description']);
+    $name = $_POST['room_name'];
+    $desc = $_POST['description'];
     $capacity = (int) $_POST['capacity'];
 
     // --- PROSES UPLOAD FOTO ---
@@ -43,18 +43,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Jika Lolos Validasi
     if ($uploadOk == 1) {
         if (move_uploaded_file($_FILES["photo"]["tmp_name"], $target_file)) {
-            // Insert ke Database
-            $sql = "INSERT INTO rooms (room_name, description, capacity, photo) 
-                    VALUES ('$name', '$desc', $capacity, '$new_file_name')";
+            // Insert ke Database menggunakan PREPARED STATEMENT
+            $stmt = mysqli_prepare($conn, "INSERT INTO rooms (room_name, description, capacity, photo) VALUES (?, ?, ?, ?)");
+            mysqli_stmt_bind_param($stmt, "ssis", $name, $desc, $capacity, $new_file_name);
 
-            if (mysqli_query($conn, $sql)) {
+            if (mysqli_stmt_execute($stmt)) {
                 // SUKSES: Set Session Message & Redirect ke Tabel
                 $_SESSION['success'] = "Ruangan berhasil ditambahkan!";
                 header("Location: rooms.php");
                 exit; // Penting: Hentikan script setelah redirect
             } else {
-                $_SESSION['error'] = "Database Error: " . mysqli_error($conn);
+                error_log("Room Add Error: " . mysqli_error($conn));
+                $_SESSION['error'] = "Terjadi kesalahan database.";
             }
+            mysqli_stmt_close($stmt);
         } else {
             $_SESSION['error'] = "Maaf, terjadi error saat mengupload gambar ke folder.";
         }

@@ -3,7 +3,8 @@
 session_start();
 
 // Jika sudah login, langsung lempar ke dashboard masing-masing
-if (isset($_SESSION['user_id'])) {
+// Jika sudah login, langsung lempar ke dashboard masing-masing
+if (isset($_SESSION['user_id']) && isset($_SESSION['role'])) {
     if ($_SESSION['role'] == 'admin') {
         header("Location: admin/dashboard.php");
     } else {

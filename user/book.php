@@ -30,40 +30,49 @@ if (!$room) {
 
 // 3. LOGIKA PEMROSESAN BOOKING
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $start_time = $_POST['start_time'];
-    $end_time = $_POST['end_time'];
-    $purpose = mysqli_real_escape_string($conn, $_POST['purpose']);
+    // Sanitasi format waktu (HTML5 datetime-local pakai 'T', MySQL pakai spasi)
+    $start_time = str_replace('T', ' ', $_POST['start_time']);
+    $end_time = str_replace('T', ' ', $_POST['end_time']);
+    $purpose = $_POST['purpose']; // Tidak butuh real_escape_string karena pakai PREPARED STATEMENT
 
     // Validasi Waktu: Selesai harus setelah Mulai
     if (strtotime($end_time) <= strtotime($start_time)) {
         $_SESSION['error'] = "Waktu selesai harus lebih akhir dari waktu mulai!";
     } else {
         // --- THE KILLER LOGIC (Cek Bentrok) ---
-        $check_query = "SELECT * FROM bookings 
-                        WHERE room_id = $room_id 
+        // Gunakan Prepared Statement untuk cek bentrok
+        $check_stmt = mysqli_prepare($conn, "SELECT id FROM bookings 
+                        WHERE room_id = ? 
                         AND status IN ('pending', 'approved')
                         AND (
-                            ('$start_time' < end_time) AND ('$end_time' > start_time)
-                        )";
+                            (? < end_time) AND (? > start_time)
+                        )");
+        
+        mysqli_stmt_bind_param($check_stmt, "iss", $room_id, $start_time, $end_time);
+        mysqli_stmt_execute($check_stmt);
+        mysqli_stmt_store_result($check_stmt);
 
-        $result_check = mysqli_query($conn, $check_query);
-
-        if (mysqli_num_rows($result_check) > 0) {
+        if (mysqli_stmt_num_rows($check_stmt) > 0) {
             // JIKA BENTROK
             $_SESSION['error'] = "Gagal! Ruangan sudah dibooking orang lain di jam tersebut.";
         } else {
-            // JIKA AMAN -> SIMPAN
-            $insert_sql = "INSERT INTO bookings (user_id, room_id, start_time, end_time, purpose, status) 
-                           VALUES ($user_id, $room_id, '$start_time', '$end_time', '$purpose', 'pending')";
+            // JIKA AMAN -> SIMPAN (Prepared Statement)
+            $insert_stmt = mysqli_prepare($conn, "INSERT INTO bookings (user_id, room_id, start_time, end_time, purpose, status) 
+                           VALUES (?, ?, ?, ?, ?, 'pending')");
+            
+            mysqli_stmt_bind_param($insert_stmt, "iisss", $user_id, $room_id, $start_time, $end_time, $purpose);
 
-            if (mysqli_query($conn, $insert_sql)) {
+            if (mysqli_stmt_execute($insert_stmt)) {
                 $_SESSION['success'] = "Booking Berhasil! Menunggu persetujuan Admin.";
                 header("Location: my_bookings.php"); // Lempar ke halaman Riwayat
                 exit;
             } else {
+                error_log("Booking Insert Error: " . mysqli_error($conn));
                 $_SESSION['error'] = "Terjadi kesalahan sistem.";
             }
+            mysqli_stmt_close($insert_stmt);
         }
+        mysqli_stmt_close($check_stmt);
     }
 }
 

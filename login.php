@@ -16,35 +16,43 @@ if (isset($_SESSION['user_id'])) {
 $error = '';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $email = mysqli_real_escape_string($conn, $_POST['email']);
+    $email = $_POST['email'];
     $password = $_POST['password'];
 
-    // 1. Cari user berdasarkan email
-    $sql = "SELECT * FROM users WHERE email = '$email'";
-    $result = mysqli_query($conn, $sql);
+    // 1. Gunakan Prepared Statement untuk mencegah SQL Injection
+    $stmt = mysqli_prepare($conn, "SELECT id, name, password, role FROM users WHERE email = ?");
+    
+    if ($stmt) {
+        mysqli_stmt_bind_param($stmt, "s", $email);
+        mysqli_stmt_execute($stmt);
+        $result = mysqli_stmt_get_result($stmt);
 
-    if (mysqli_num_rows($result) === 1) {
-        $row = mysqli_fetch_assoc($result);
+        if (mysqli_num_rows($result) === 1) {
+            $row = mysqli_fetch_assoc($result);
 
-        // 2. Verifikasi Password (Hash vs Input)
-        if (password_verify($password, $row['password'])) {
-            // 3. Set Session (Menyimpan status login di browser)
-            $_SESSION['user_id'] = $row['id'];
-            $_SESSION['role'] = $row['role'];
-            $_SESSION['name'] = $row['name'];
+            // 2. Verifikasi Password (Hash vs Input)
+            if (password_verify($password, $row['password'])) {
+                // 3. Set Session
+                $_SESSION['user_id'] = $row['id'];
+                $_SESSION['role'] = $row['role'];
+                $_SESSION['name'] = $row['name'];
 
-            // 4. Cek Role untuk Redirect
-            if ($row['role'] == 'admin') {
-                header("Location: admin/dashboard.php"); // Nanti kita buat foldernya
+                // 4. Redirect sesuai role
+                if ($row['role'] == 'admin') {
+                    header("Location: admin/dashboard.php");
+                } else {
+                    header("Location: user/dashboard.php");
+                }
+                exit;
             } else {
-                header("Location: user/dashboard.php");  // Nanti kita buat foldernya
+                $error = "Password salah!";
             }
-            exit;
         } else {
-            $error = "Password salah!";
+            $error = "Email tidak ditemukan!";
         }
+        mysqli_stmt_close($stmt);
     } else {
-        $error = "Email tidak ditemukan!";
+        $error = "Terjadi kesalahan sistem (Statement Failed).";
     }
 }
 ?>

@@ -6,31 +6,37 @@ $error = '';
 $success = '';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $name = mysqli_real_escape_string($conn, $_POST['name']);
-    $email = mysqli_real_escape_string($conn, $_POST['email']);
+    $name = $_POST['name'];
+    $email = $_POST['email'];
     $password = $_POST['password'];
     $role = 'user'; // Default register pasti user biasa
 
     // 1. Cek apakah email sudah terdaftar
-    $check_email = "SELECT * FROM users WHERE email = '$email'";
-    $result = mysqli_query($conn, $check_email);
+    $check_stmt = mysqli_prepare($conn, "SELECT id FROM users WHERE email = ?");
+    mysqli_stmt_bind_param($check_stmt, "s", $email);
+    mysqli_stmt_execute($check_stmt);
+    mysqli_stmt_store_result($check_stmt);
 
-    if (mysqli_num_rows($result) > 0) {
+    if (mysqli_stmt_num_rows($check_stmt) > 0) {
         $error = "Email sudah terdaftar!";
     } else {
         // 2. Hash Password (Keamanan Wajib!)
-        // Jangan pernah simpan password plain text
         $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
-        // 3. Masukkan data ke database
-        $sql = "INSERT INTO users (name, email, password, role) VALUES ('$name', '$email', '$hashed_password', '$role')";
+        // 3. Masukkan data ke database menggunakan Prepared Statement
+        $insert_stmt = mysqli_prepare($conn, "INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)");
+        mysqli_stmt_bind_param($insert_stmt, "ssss", $name, $email, $hashed_password, $role);
 
-        if (mysqli_query($conn, $sql)) {
+        if (mysqli_stmt_execute($insert_stmt)) {
             $success = "Registrasi berhasil! Silakan login.";
         } else {
-            $error = "Terjadi kesalahan: " . mysqli_error($conn);
+            // Jangan tampilkan error SQL raw ke user
+            error_log("Register Error: " . mysqli_error($conn));
+            $error = "Terjadi kesalahan sistem saat mendaftar.";
         }
+        mysqli_stmt_close($insert_stmt);
     }
+    mysqli_stmt_close($check_stmt);
 }
 ?>
 
